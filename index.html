@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Probabilistic Snow Accumulation Forecast (7 - 9 December)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        
+        .app-bar {
+            background-color: #1e88e5; 
+            color: white;
+            padding: 0 16px;
+            height: 64px;
+            display: flex; 
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            z-index: 10; 
+        }
+
+        .app-bar-left {
+            display: flex;
+            align-items: center;
+            flex-grow: 1; 
+            min-width: 0; 
+        }
+
+        .logo {
+            height: 40px;
+            margin-right: 16px;
+            background-color: white; 
+            border-radius: 50%;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1e88e5; 
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .title-container {
+            line-height: 1.2;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            font-weight: 300;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .app-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0; 
+        }
+
+        .help-button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+            display: flex; 
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .help-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        
+        .radio-group label {
+            margin-left: 5px;
+            margin-right: 15px; 
+            cursor: pointer;
+            display: flex; 
+            align-items: center;
+        }
+
+        
+        .custom-radio {
+            display: none; 
+        }
+
+        .radio-visual {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid white; 
+            border-radius: 50%;
+            margin-right: 5px;
+            position: relative;
+            vertical-align: middle;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        .custom-radio:checked + label .radio-visual::after {
+            content: '';
+            display: block;
+            width: 8px; 
+            height: 8px;
+            background: white; 
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #map {
+            position: absolute;
+            top: 64px; 
+            bottom: 0;
+            width: 100%;
+            overflow: hidden !important;
+        }
+
+        .map-overlay {
+            position: absolute;
+            bottom: 0;
+            background: #fff;
+            font-family: Arial, sans-serif;
+            border-radius: 3px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            z-index: 5;
+        }
+
+        
+        .pd-tooltip {
+            position: absolute;
+            z-index: 100;
+            padding: 5px 8px;
+            background: transparent;
+            color: black;
+            font-weight: bold;
+            pointer-events: none; 
+            text-shadow: 
+                -1px -1px 0 #fff,  
+                 1px -1px 0 #fff,
+                -1px 1px 0 #fff,
+                 1px 1px 0 #fff,
+                 0 0 3px #fff; 
+        }
+
+        
+        #fixed-popup {
+            bottom: 40px; 
+            right: 10px;
+            left: initial;
+            margin-left: initial;
+            width: 250px;
+            padding: 15px;
+            display: none; 
+            z-index: 10;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-top: 5px solid #1e88e5; 
+            border-radius: 12px !important; 
+            max-height: initial; 
+            overflow-y: initial;
+            font-size: 14px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #fixed-popup h4 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+            text-align: center;
+        }
+        #fixed-popup .date-range {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+            line-height: 1;
+            border-radius: 4px; 
+        }
+
+        .estimate-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd; 
+        }
+        .estimate-column {
+            text-align: center;
+        }
+        .estimate-column .value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .estimate-column .label {
+            font-size: 12px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .probabilities-header {
+            font-size: 12px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .probability-table {
+            display: grid;
+            grid-template-columns: 2fr 1fr; 
+            gap: 8px 10px;
+        }
+        .probability-description {
+            font-size: 14px;
+            font-weight: 400;
+            color: #333;
+        }
+        .probability-value {
+            font-size: 14px;
+            font-weight: 700;
+            text-align: right;
+            color: #1e88e5; 
+        }
+
+        .rounded {
+            border-radius: var(--bs-border-radius) !important;
+        }
+        
+
+        #legend-container {
+            position: absolute;
+            bottom: 40px; 
+            left: 20px;
+            z-index: 5;
+            
+            display: flex;
+            flex-direction: column; 
+            
+            background: rgba(255, 255, 255, 0.9); 
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            padding: 0;
+            overflow: hidden; 
+            width: auto; 
+            height: auto; 
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            height: 30px; 
+            padding: 0 10px 0 0; 
+            margin: 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            background: transparent;
+        }
+        
+        .legend-row:last-child {
+            border-bottom: none;
+        }
+
+        .legend-key {
+            display: inline-block;
+            width: 12px;
+            height: 100%; 
+            margin-right: 10px;
+            margin-left: 0; 
+        }
+
+        .legend-row:first-child .legend-key {
+            border-top-left-radius: 12px;
+        }
+        .legend-row:last-child .legend-key {
+            border-bottom-left-radius: 12px;
+        }
+        
+        .legend-row label {
+            font-size: 12px;
+            width: 50px; 
+            text-align: left; 
+            font-weight: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bar">
+        <div class="app-bar-left">
+            <div class="logo">PB</div>
+            <div class="title-container">
+                <div class="title">Probabilistic Snow Accumulation Forecast</div>
+                <div class="subtitle">In the Contigous United States (7 - 9 December, 2025)</div>
+            </div>
+        </div>
+        <div class="app-bar-right">
+            <div class="radio-group">
+                <span style="font-size: x-large;">🗓️</span>
+                
+                <input type="radio" id="radio-24" name="estimates" value="24 Hours" checked class="custom-radio">
+                <label for="radio-24">
+                    <span class="radio-visual"></span>
+                    7th December
+                </label>
+                
+                <input type="radio" id="radio-48" name="estimates" value="48 Hours" class="custom-radio">
+                <label for="radio-48">
+                    <span class="radio-visual"></span>
+                    8th December
+                </label>
+                
+                <input type="radio" id="radio-72" name="estimates" value="72 Hours" class="custom-radio">
+                <label for="radio-72">
+                    <span class="radio-visual"></span>
+                    9th December
+                </label>
+            </div>
+            <button class="help-button" id="help-btn">
+                <i class="material-icons">help_outline</i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="map"></div>
+ 
+    <div id="legend-container">
+        <div id="legend-content">
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #08306b"></span>
+                <label>8 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #08519c"></span>
+                <label>7 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #2171b5"></span>
+                <label>5.9 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #4292c6"></span>
+                <label>5.36 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #6baed6"></span>
+                <label>8.85 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #9ecae1"></span>
+                <label>3.8 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #c6dbef"></span>
+                <label>2.75 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #deebf7"></span>
+                <label>1.7 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #edf8fb"></span>
+                <label>0.65 in.</label>
+            </div>
+            <div class="legend-row">
+                <span class="legend-key" style="background-color: #ffffff"></span>
+                <label>0 in.</label>
+            </div>
+        </div>
+    </div>
+    
+    <div id="fixed-popup" class="map-overlay rounded" style="background: white; display: none;"></div>
+
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1Ijoicm9zdGFuZXRlayIsImEiOiJoaDFTNnFRIn0.Za8R7rmRVPnYC5RVs4KESg';
+
+        const LAYER_ID_DENSITY_24HRS = 'snow-prob-24hrs-26nrbf';
+        const LAYER_ID_DENSITY_48HRS = 'snow-prob-48hrs-ccmfeu';
+        const LAYER_ID_DENSITY_72HRS = 'snow-prob-72hrs-djc7xd';
+        const LAYER_ID_POINTS = 'snow-prob-combined-1gfawx';
+
+        const map = new mapboxgl.Map({
+            center: [-98.92195958552794, 39.50717345756227],
+            zoom: 4,
+            container: 'map', 
+            attributionControl: false, 
+            style: 'mapbox://styles/rostanetek/cmiwxccw2006501s56u340t2y/draft' 
+        });
+
+        const pdTooltip = document.createElement('div');
+        pdTooltip.className = 'pd-tooltip';
+        pdTooltip.style.display = 'none';
+        document.body.appendChild(pdTooltip);
+        
+        const fixedPopup = document.getElementById('fixed-popup');
+        const citiesLayerName = LAYER_ID_POINTS
+        let hoveredCityId = null; 
+        
+        let activeDensityLayer = LAYER_ID_DENSITY_24HRS; 
+
+        function handleDensityHover(event) {
+            map.getCanvas().style.cursor = 'crosshair';
+
+            const zone = event.features[0];
+            const amount = zone.properties.amount.toLocaleString();
+            const tooltipContent = `<strong>${amount} inches</strong><br><em>Snow accumulation</em>`; 
+            
+            pdTooltip.style.left = `${event.originalEvent.clientX + 15}px`;
+            pdTooltip.style.top = `${event.originalEvent.clientY + 15}px`;
+            pdTooltip.innerHTML = tooltipContent;
+            pdTooltip.style.display = 'block';
+        }
+
+        function handleDensityLeave() {
+            pdTooltip.style.display = 'none';
+        }
+
+        function handleCityClick(e) {
+            const properties = e.features[0].properties;
+            const dateRange = "3 day forecast"; 
+
+            const elevation = properties.elev_in_ft && properties.elev_in_ft >= 1 ? `${properties.elev_in_ft.toLocaleString()} ft` : 'Unknown';
+
+            const description = `
+                <button id="close-fixed-popup" class="close-button" title="Close Popup">
+                    &times;
+                </button>
+
+                <h4>${properties.name}, ${properties.state}</h4>
+                <div class="date-range">${dateRange}</div>
+
+                <div class="estimate-row">
+                    <div class="estimate-column">
+                        <div class="value">${elevation} </div>
+                        <div class="label">Elevation</div>
+                    </div>
+                </div>
+                
+                <div class="probabilities-header">SNOW ACCUMULATION</div>
+                <div class="probability-table">
+                    
+                    <div class="probability-description">Sunday, December 7</div>
+                    <div class="probability-value">${properties.amount24} inches</div>
+                    
+                    <div class="probability-description">Monday, December 8</div>
+                    <div class="probability-value">${properties.amount48} inches</div>
+                    
+                    <div class="probability-description">Tuesday, December 9</div>
+                    <div class="probability-value">${properties.amount72} inches</div>
+
+                    </div>
+                
+                `;
+
+            fixedPopup.innerHTML = description;
+            fixedPopup.style.display = 'block';
+
+            document.getElementById('close-fixed-popup').onclick = () => {
+                fixedPopup.style.display = 'none';
+            };
+        }
+        
+        function toggleDensityLayer(newLayerId) {
+            if (map.getLayer(activeDensityLayer)) {
+                map.setLayoutProperty(activeDensityLayer, 'visibility', 'none');
+            }
+
+            if (map.getLayer(newLayerId)) {
+                map.setLayoutProperty(newLayerId, 'visibility', 'visible');
+            }
+            
+            activeDensityLayer = newLayerId;
+        }
+
+        map.on('load', () => {
+            if (map.getLayer(LAYER_ID_DENSITY_48HRS)) {
+                 map.setLayoutProperty(LAYER_ID_DENSITY_48HRS, 'visibility', 'none');
+            }
+            if (map.getLayer(LAYER_ID_DENSITY_72HRS)) {
+                 map.setLayoutProperty(LAYER_ID_DENSITY_72HRS, 'visibility', 'none');
+            }
+            map.on('mousemove', activeDensityLayer, handleDensityHover);
+            map.on('mouseleave', activeDensityLayer, handleDensityLeave);
+            map.on('click', LAYER_ID_POINTS, handleCityClick);
+        });
+
+        map.on('idle', () => {
+            map.on('mousemove', activeDensityLayer, handleDensityHover);
+            map.on('mouseleave', activeDensityLayer, handleDensityLeave);
+            map.on('click', LAYER_ID_POINTS, handleCityClick);
+        });
+
+        map.on('click', (e) => {
+            const features = map.queryRenderedFeatures(e.point, { layers: [LAYER_ID_POINTS] });
+            if (!features.length) {
+                fixedPopup.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('input[name="estimates"]').forEach((radio) => {
+            radio.addEventListener('change', (e) => {
+                const value = e.target.value;
+                console.log(`Estimate chosen: ${value}`);
+
+                fixedPopup.style.display = 'none';
+
+                if (value === '24 Hours') {
+                    toggleDensityLayer(LAYER_ID_DENSITY_24HRS);
+                } else if (value === '48 Hours') {
+                    toggleDensityLayer(LAYER_ID_DENSITY_48HRS);
+                } else if (value === '72 Hours') {
+                    toggleDensityLayer(LAYER_ID_DENSITY_72HRS); 
+                }
+            });
+        });
+
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        map.addControl(
+            new mapboxgl.AttributionControl({
+                customAttribution: 'Authors: <a target="_blank" href="https://bamideleoke.dev">Bamidele Clement OKE</a> and Bukhari Syeda Noor Ul Saba | Data © <a target="_blank" href="https://livingatlas.arcgis.com">ArcGIS Living Atlas</a>',
+                compact: true 
+            }),
+            'bottom-right' 
+        );
+
+        document.getElementById('help-btn').addEventListener('click', () => {
+            console.log('Help button clicked! Displaying help information...');
+            alert("This map shows something important. Hover over a region to find out, and click on an observation point for details.");
+        });
+
+    </script>
+</body>
+</html>
