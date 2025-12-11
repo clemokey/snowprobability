@@ -288,7 +288,7 @@
 
         
         #fixed-popup {
-            bottom: 40px; 
+            bottom: 80px; 
             right: 10px;
             left: initial;
             margin-left: initial;
@@ -384,7 +384,7 @@
         #legend-container {
             position: absolute;
             bottom: 40px; 
-            left: 20px;
+            left: 10px;
             z-index: 5;
             
             display: flex;
@@ -598,6 +598,14 @@
             attributionControl: false, 
             style: 'mapbox://styles/rostanetek/cmiwxccw2006501s56u340t2y' 
         });
+
+
+        const scale = new mapboxgl.ScaleControl({
+            maxWidth: 100,
+            unit: 'metric'
+        });
+
+        map.addControl(scale, 'bottom-right');
 
         const pdTooltip = document.createElement('div');
         pdTooltip.className = 'pd-tooltip';
