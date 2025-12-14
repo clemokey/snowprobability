@@ -635,6 +635,10 @@
             pdTooltip.style.display = 'none';
         }
 
+        function handleCityHover(event) {
+            map.getCanvas().style.cursor = 'pointer';
+        }
+        
         function handleCityClick(e) {
             const properties = e.features[0].properties;
             const dateRange = "3 day forecast"; 
@@ -699,13 +703,13 @@
             if (map.getLayer(LAYER_ID_DENSITY_72HRS)) {
                  map.setLayoutProperty(LAYER_ID_DENSITY_72HRS, 'visibility', 'none');
             }
-            map.on('mousemove', activeDensityLayer, handleDensityHover);
+            map.on('mousemove', activeDensityLayer, handleDensityHover, handleCityHover);
             map.on('mouseleave', activeDensityLayer, handleDensityLeave);
             map.on('click', LAYER_ID_POINTS, handleCityClick);
         });
 
         map.on('idle', () => {
-            map.on('mousemove', activeDensityLayer, handleDensityHover);
+            map.on('mousemove', activeDensityLayer, handleDensityHover, handleCityHover);
             map.on('mouseleave', activeDensityLayer, handleDensityLeave);
             map.on('click', LAYER_ID_POINTS, handleCityClick);
         });
