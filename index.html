@@ -634,7 +634,12 @@
         }
 
         function handleCityHover(event) {
+            if (!event.features || !event.features.length) return;
             map.getCanvas().style.cursor = 'pointer';
+        }
+
+        function handleCityLeave() {
+            map.getCanvas().style.cursor = '';
         }
         
         function handleCityClick(e) {
@@ -702,6 +707,7 @@
                  map.setLayoutProperty(LAYER_ID_DENSITY_72HRS, 'visibility', 'none');
             }
             map.on('mouseenter', LAYER_ID_POINTS, handleCityHover);
+            map.on('mouseleave', LAYER_ID_POINTS, handleCityLeave);
             map.on('mousemove', activeDensityLayer, handleDensityHover);
             map.on('mouseleave', activeDensityLayer, handleDensityLeave);
             map.on('click', LAYER_ID_POINTS, handleCityClick);
@@ -709,6 +715,7 @@
 
         map.on('idle', () => {
             map.on('mouseenter', LAYER_ID_POINTS, handleCityHover);
+            map.on('mouseleave', LAYER_ID_POINTS, handleCityLeave);
             map.on('mousemove', activeDensityLayer, handleDensityHover);
             map.on('mouseleave', activeDensityLayer, handleDensityLeave);
             map.on('click', LAYER_ID_POINTS, handleCityClick);
