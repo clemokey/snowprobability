@@ -468,11 +468,11 @@
                 </label>
 
                 
-                <!-- <input type="radio" id="radio-none" name="estimates" value="None" class="custom-radio">
-                <label for="radio-72">
+                <input type="radio" id="radio-none" name="estimates" value="None" class="custom-radio">
+                <label for="radio-none">
                     <span class="radio-visual"></span>
                     None
-                </label> -->
+                </label>
             </div>
             <button class="help-button" id="help-btn">
                 <i class="material-icons">help_outline</i>
@@ -704,6 +704,10 @@
                 map.setLayoutProperty(newLayerId, 'visibility', 'visible');
             }
             
+            if (newLayerId === LAYER_ID_DENSITY_NONE) {
+                map.setLayoutProperty(activeDensityLayer, 'visibility', 'none');
+            }
+
             activeDensityLayer = newLayerId;
         }
 
