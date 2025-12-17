@@ -466,6 +466,13 @@
                     <span class="radio-visual"></span>
                     9th December
                 </label>
+
+                
+                <input type="radio" id="radio-none" name="estimates" value="None" class="custom-radio">
+                <label for="radio-72">
+                    <span class="radio-visual"></span>
+                    None
+                </label>
             </div>
             <button class="help-button" id="help-btn">
                 <i class="material-icons">help_outline</i>
@@ -589,6 +596,7 @@
         const LAYER_ID_DENSITY_24HRS = 'snow-prob-24hrs-26nrbf';
         const LAYER_ID_DENSITY_48HRS = 'snow-prob-48hrs-ccmfeu';
         const LAYER_ID_DENSITY_72HRS = 'snow-prob-72hrs-djc7xd';
+        const LAYER_ID_DENSITY_NONE = '';
         const LAYER_ID_POINTS = 'snow-prob-combined-1gfawx';
 
         const map = new mapboxgl.Map({
@@ -741,6 +749,8 @@
                     toggleDensityLayer(LAYER_ID_DENSITY_48HRS);
                 } else if (value === '72 Hours') {
                     toggleDensityLayer(LAYER_ID_DENSITY_72HRS); 
+                } else if (value === 'None') {
+                    toggleDensityLayer(LAYER_ID_DENSITY_NONE); 
                 }
             });
         });
