@@ -522,6 +522,9 @@ body {
             }
         }
         @media (max-width: 950px) {
+            .mapboxgl-ctrl-attrib.mapboxgl-compact-show {
+                margin-left: 100px !important;
+            }
             #splash-screen {
                 padding: 15px;
                 align-items: flex-start;
@@ -636,3 +639,4 @@ body {
                 display: none !important;
             }
         }
+
