@@ -434,6 +434,34 @@
             text-align: left; 
             font-weight: 100;
         }
+
+        .opacity-control{
+            display:flex;
+            z-index: 999;
+            width: 220px;
+            align-items:center;
+            margin-top: 10px;
+            gap:10px;
+            margin-left: 10px;
+            position: sticky;
+            padding:6px 10px;
+            border-radius:999px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        #opacity-slider{
+            width:140px;
+        }
+
+        #opacity-value{
+            font-size:12px;
+            opacity:0.9;
+            color: #ffffff;
+            font-weight: bold;
+            min-width:38px;
+            text-align:right;
+        }
+
     </style>
 </head>
 <body>
@@ -480,6 +508,12 @@
         </div>
     </div>
     
+    <div class="opacity-control" id="opacity-control" title="Snow layer opacity">
+        <span class="material-icons" style="font-size:20px; line-height:0; color: #ffffff;">opacity</span>
+        <input id="opacity-slider" type="range" min="0" max="100" value="70" />
+        <span id="opacity-value">70%</span>
+    </div>
+
     <div id="splash-screen">
         <div class="splash-content">
             <button class="splash-close" id="splash-close-btn" title="Close">&times;</button>
@@ -708,8 +742,14 @@
                 map.setLayoutProperty(activeDensityLayer, 'visibility', 'none');
             }
 
+            const isNone = (newLayerId === LAYER_ID_DENSITY_NONE);
+            opacityControl.style.display = isNone ? 'none' : 'flex';
+
             activeDensityLayer = newLayerId;
         }
+
+        
+        let activeOpacity = 0.7;
 
         map.on('load', () => {
             if (map.getLayer(LAYER_ID_DENSITY_48HRS)) {
@@ -723,6 +763,9 @@
             map.on('mousemove', activeDensityLayer, handleDensityHover);
             map.on('mouseleave', activeDensityLayer, handleDensityLeave);
             map.on('click', LAYER_ID_POINTS, handleCityClick);
+
+            opacityControl.style.display = 'flex';
+            setActiveLayerOpacity(activeOpacity);
         });
 
         map.on('idle', () => {
@@ -768,6 +811,27 @@
             }),
             'bottom-right' 
         );
+
+        const opacityControl = document.getElementById('opacity-control');
+        const opacitySlider  = document.getElementById('opacity-slider');
+        const opacityValueEl = document.getElementById('opacity-value');
+
+        function setActiveLayerOpacity(opacity01) {
+            activeOpacity = opacity01;
+
+            const pct = Math.round(opacity01 * 100);
+            opacitySlider.value = pct;
+            opacityValueEl.textContent = `${pct}%`;
+
+            if (activeDensityLayer && map.getLayer(activeDensityLayer)) {
+                map.setPaintProperty(activeDensityLayer, 'fill-opacity', opacity01);
+            }
+        }
+
+        opacitySlider.addEventListener('input', (e) => {
+            setActiveLayerOpacity(Number(e.target.value) / 100);
+        });
+
 
     </script>
 </body>
